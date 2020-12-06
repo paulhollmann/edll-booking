@@ -6,6 +6,22 @@ if (isset($_GET['nextWeek'])) {
 
 include 'booking.php';
 
+
+
+
+function isWeeklyPosition($weeklyObject, $day, $bookingStation){
+	foreach($weeklyObject as $event){
+		if ($event->day === $day){
+			foreach($event->booking as $station){
+				$len = strlen($station);
+				return (substr($bookingStation, 0, $len) === $station);
+			}
+		}
+	}
+	return false;
+}
+
+
 /**
  * Get the cached xml data
  * @return data
@@ -82,12 +98,19 @@ function next_station_is_same($currentElement, $nextElement)
 }
 
 $stationsFile = fopen("allStations.csv", "r") or die("Unable to open file!");
+$minStationsFile = fopen("minStations.csv", "r") or die("Unable to open file!");
 $allStationsString = fgets($stationsFile);
+$minStationsString = fgets($minStationsFile);
 
-$edff_min_stations = ["EDGG_CTR", "EDGG_E_CTR", "EDUU_W_CTR", "EDDF_N_APP", "EDDF_U_APP","EDDF_TWR", "EDDF_C_GND", "EDDF_DEL", "EDDS_N_APP", "EDDS_TWR", "EDDS_GND", "EDDS_DEL"];
-$edff_main_stations =  explode(',',$allStationsString);
 
-$booked_stations = get_bookings($edff_main_stations);
+$bookingsString = file_get_contents("weekly.json") or die("Unable to open file!");
+$weeklyBookings = json_decode($bookingsString);
+
+
+$min_stations = explode(',',$minStationsString);
+$main_stations =  explode(',',$allStationsString);
+
+$booked_stations = get_bookings($main_stations);
 
 /* Booking matrix contains all stations and bookings.. Still in progress!
 
@@ -102,9 +125,9 @@ Day cell is again array to handle multiple bookings each day
 $booking_matrix = [];
 
 // Iterate over the stations and create a booking matrix
-for ($i = 0; $i < count($edff_main_stations); $i++) {
+for ($i = 0; $i < count($main_stations); $i++) {
     // First row contains the station
-    $booking_matrix[$i][0] = $edff_main_stations[$i];
+    $booking_matrix[$i][0] = $main_stations[$i];
     $day = clone $MASTER_DATE;
     // Loop over the next days
     for ($j = 1; $j < 8; $j++) {
@@ -118,14 +141,14 @@ for ($i = 0; $i < count($edff_main_stations); $i++) {
             $booking_date_end = DateTime::createFromFormat('Y-m-d H:i:s', $booked_stations[$k]->time_end);
 
             // append all bookings as array
-            if ($booking_date_start->format("Y-m-d") === $day->format("Y-m-d") && $edff_main_stations[$i] == $booked_stations[$k]->callsign) {
+            if ($booking_date_start->format("Y-m-d") === $day->format("Y-m-d") && $main_stations[$i] == $booked_stations[$k]->callsign) {
                 $cellObject[] = $booked_stations[$k]->abbreviation . " " . $booking_date_start->format("H") . "-" . $booking_date_end->format("H");
                 $found_booking = true;
             }
         }
         // If no booking found, set it to open
         if (!$found_booking) {
-			if(in_array($edff_main_stations[$i],$edff_min_stations)){
+			if(in_array($main_stations[$i],$min_stations)){
 				$cellObject[] = "open";
 			}
 			else {
@@ -185,6 +208,7 @@ $cell_width = 104;
 $day = clone $MASTER_DATE;
 for ($i = 1; $i < 8; $i++) {
     write_string($im, 3, $cell_width * $i, $row * $lineHeight, $day->format("D d.m."), $color_black);
+
     $day->add(new DateInterval('P1D'));
 }
 $row = 2;
@@ -196,6 +220,9 @@ $row = 3;
 for ($i = 0; $i < count($booking_matrix); $i++) {
     $day = clone $MASTER_DATE;
     // Write station
+	imageline($im, 0, ($row) * $lineHeight, $imageWidth, ($row) * $lineHeight, $color_gray);
+	imageline($im, 0, ($row+1) * $lineHeight, $imageWidth, ($row+1) * $lineHeight, $color_gray);
+
     write_string($im, 3, 5, $lineHeight * $row, $booking_matrix[$i][0], $color_black);
     $maxHeight = 1;
     //Loop over the days from the stations
@@ -210,14 +237,17 @@ for ($i = 0; $i < count($booking_matrix); $i++) {
             if ($booking_matrix[$i][$j][$k] !== "open") {
                 $color = $color_black;
             }
-            if ($day->format("N") === "4" && $booking_matrix[$i][$j][$k] === "open"
-                && (substr($booking_matrix[$i][0], 0, 4) === "EDDS" || substr($booking_matrix[$i][0], 0, 6) === "EDGG_E")) {
-                $color = $color_red;
-            }
-            if ($day->format("N") === "5" && $booking_matrix[$i][$j][$k] === "open"
-                && (substr($booking_matrix[$i][0], 0, 4) === "EDDF" || substr($booking_matrix[$i][0], 0, 6) === "EDGG_E" || substr($booking_matrix[$i][0], 0, 6) === "EDUU_W")) {
-                $color = $color_red;
-            }
+			if($booking_matrix[$i][$j][$k] === "open" && isWeeklyPosition($weeklyBookings, $day->format("N"), $booking_matrix[$i][0])){
+				$color = $color_red;
+			}
+            //if ($day->format("N") === "4" && $booking_matrix[$i][$j][$k] === "open"
+            //    && (substr($booking_matrix[$i][0], 0, 4) === "EDDH" || substr($booking_matrix[$i][0], 0, 6) === "EDWW_A"|| substr($booking_matrix[$i][0], 0, 6) === "EDYY_C")) {
+            //    $color = $color_red;
+            //}
+            //if ($day->format("N") === "7" && $booking_matrix[$i][$j][$k] === "open"
+            //    && (substr($booking_matrix[$i][0], 0, 4) === "EDDW" || substr($booking_matrix[$i][0], 0, 6) === "EDGG_E" )) {
+            //    $color = $color_red;
+            //}
 
             // If is requested but open than make it to WANTED
             if ($color === $color_red && $booking_matrix[$i][$j][$k] == "open") {
@@ -239,7 +269,9 @@ for ($i = 0; $i < count($booking_matrix); $i++) {
         $row += 2;
     }
 }
-
+for ($i = 1; $i < 8; $i++) {
+	imageline($im, ($cell_width *$i)-10 , 0, ($cell_width *$i)-10, $lineHeight*$row, $color_gray);
+}
 $row = $row + 3;
 
 
@@ -266,7 +298,7 @@ $row += 2;
 $generated_time = new DateTime();
 write_string($im, 2, 5, $lineHeight * $row, "Generated " . $generated_time->format("d.m.Y H:i:s")." ".count($booking_matrix), $color_gray);
 
-// Set content to gif and create image
+// Set content to png and create image
 header('Content-type: image/png');
 imagepng($im);
 imagedestroy($im);

@@ -10,15 +10,16 @@ include 'booking.php';
 
 
 function isWeeklyPosition($weeklyObject, $day, $bookingStation){
+	$isStation = false;
 	foreach($weeklyObject as $event){
 		if ($event->day === $day){
 			foreach($event->booking as $station){
 				$len = strlen($station);
-				return (substr($bookingStation, 0, $len) === $station);
+					$isStation = $isStation || (substr($bookingStation, 0, $len) === $station);
 			}
 		}
 	}
-	return false;
+	return $isStation;
 }
 
 
@@ -165,15 +166,14 @@ $tempBookingMatrix = [];
 
 for($i = 0; $i<count($booking_matrix); $i++){
 	$hasBookings = false;
-	for($j = 1; $j<count($booking_matrix[$i]); $j++){	
-		
+	for($j = 1; $j<count($booking_matrix[$i]); $j++){
 		for($k = 0; $k<count($booking_matrix[$i][$j]);$k++){
 			//echo $booking_matrix[$i][$j][$k]."<br>";
 			if($booking_matrix[$i][$j][$k] !== null){
 				$hasBookings = true;
 				break;
 			}
-		}	
+		}
 		
 	}
 	if($hasBookings){

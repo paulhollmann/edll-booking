@@ -201,7 +201,8 @@ $color_gray = imagecolorallocate($im, 210, 210, 210);
 $color_red = imagecolorallocate($im, 190, 40, 40);
 
 $row = 1;
-$lineHeight = 15;
+$lineHeight = 20;
+$vertOffset = 4;
 $cell_width = 104;
 
 // Set date header columns
@@ -223,7 +224,7 @@ for ($i = 0; $i < count($booking_matrix); $i++) {
 	imageline($im, 0, ($row) * $lineHeight, $imageWidth, ($row) * $lineHeight, $color_gray);
 	imageline($im, 0, ($row+1) * $lineHeight, $imageWidth, ($row+1) * $lineHeight, $color_gray);
 
-    write_string($im, 3, 5, $lineHeight * $row, $booking_matrix[$i][0], $color_black);
+    write_string($im, 3, 5, ($lineHeight * $row) + $vertOffset, $booking_matrix[$i][0], $color_black);
     $maxHeight = 1;
     //Loop over the days from the stations
     for ($j = 1; $j < count($booking_matrix[$i]); $j++) {
@@ -254,7 +255,7 @@ for ($i = 0; $i < count($booking_matrix); $i++) {
                 $booking_matrix[$i][$j][$k] = "WANTED";
             }
 
-            write_string($im, 3, $cell_width * $j, $lineHeight * $row, $booking_matrix[$i][$j][$k], $color);
+            write_string($im, 3, $cell_width * $j, ($lineHeight * $row) + $vertOffset, $booking_matrix[$i][$j][$k], $color);
             $row++;
         }
         // Set row back to the first row if the current station for the next day

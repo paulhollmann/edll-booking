@@ -340,7 +340,14 @@ for ($i = 0; $i < count($booking_matrix); $i++) {
 }
 for ($i = 1; $i < 8; $i++) {
 	imageline($im, ($cell_width *$i)-10 , 0, ($cell_width *$i)-10, $lineHeight*$row, $color_gray);
-}
+}	
+
+
+write_string($im, 3, 5, ($lineHeight * $row) + $vertOffset, "Wanted", $color_red);
+write_string($im, 3, $cell_width, ($lineHeight * $row) + $vertOffset, "Training", $color_blue);
+write_string($im, 3, $cell_width * 2 , ($lineHeight * $row) + $vertOffset, "Event", $color_orange);
+
+
 $row = $row + 3;
 
 

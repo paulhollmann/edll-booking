@@ -253,9 +253,12 @@ for ($i = 0; $i < count($booked_stations); $i++) {
 }
 
 $booking_matrix = $tempBookingMatrix;
+$booking_groups = 0;
 
-$imageHeight = (count($booking_matrix) + $additionalBookings) * 35 + ceil(count($all_users) / 3) * 25 + 25; 
+
+$imageHeight = 5000; //temporary height
 $imageWidth = 820;
+
 // Create images
 $im = imagecreate($imageWidth, $imageHeight);
 $background_color = imagecolorallocate($im, 242, 242, 242);
@@ -364,7 +367,12 @@ $row += 2;
 $generated_time = new DateTime();
 write_string($im, 2, 5, $lineHeight * $row, "Generated " . $generated_time->format("d.m.Y H:i:s")." ".count($booking_matrix), $color_gray);
 
+$newHeight = ($row+1)*$lineHeight;
+$dstim = imagecreatetruecolor($imageWidth, $newHeight);
+imagecopyresized($dstim,$im,0,0,0,0,$imageWidth,$newHeight,$imageWidth,$newHeight);
+
 // Set content to png and create image
 header('Content-type: image/png');
-imagepng($im);
+imagepng($dstim);
 imagedestroy($im);
+imagedestroy($dstim);

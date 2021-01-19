@@ -224,7 +224,7 @@ for ($i = 0; $i < count($main_stations); $i++) {
 }
 
 $tempBookingMatrix = [];
-
+$additionalBookings = 0;
 for($i = 0; $i<count($booking_matrix); $i++){
 	$hasBookings = false;
 	for($j = 1; $j<count($booking_matrix[$i]); $j++){
@@ -238,6 +238,11 @@ for($i = 0; $i<count($booking_matrix); $i++){
 	}
 	if($hasBookings){
 		$tempBookingMatrix[] = $booking_matrix[$i];
+		for ($k = 1; $k<count($booking_matrix[$i]); $k++){
+			if(count($booking_matrix[$i][$k]) > 1){
+				$additionalBookings = $additionalBookings + (count($booking_matrix[$i][$k]));
+			}
+		}
 	}
 }
 
@@ -249,9 +254,8 @@ for ($i = 0; $i < count($booked_stations); $i++) {
 
 $booking_matrix = $tempBookingMatrix;
 
-$imageHeight = count($booking_matrix) * 30 + ceil(count($all_users) / 3) * 15;
+$imageHeight = (count($booking_matrix) + $additionalBookings) * 35 + ceil(count($all_users) / 3) * 25 + 25; 
 $imageWidth = 820;
-
 // Create images
 $im = imagecreate($imageWidth, $imageHeight);
 $background_color = imagecolorallocate($im, 242, 242, 242);

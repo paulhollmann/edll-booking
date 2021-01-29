@@ -1,9 +1,9 @@
 [{
 		"day": "4",
-		"booking": ["EDDH", "EDWW_A", "EDYY_C"]
+		"booking": ["EDDS", "EDGG_E"]
 	},
 	{
-		"day": "7",
-		"booking": ["EDDW", "EDWW_A"]
+		"day": "5",
+		"booking": ["EDDF", "EDGG_E", "EDUU_W"]
 	}
 ]

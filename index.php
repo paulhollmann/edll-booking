@@ -170,10 +170,10 @@ $min_stations = explode(',',$minStationsString);
 $main_stations =  explode(',',$allStationsString);
 
 $min_stations = array_filter($min_stations, function($s) {
-    return !empty($s);
+    return !empty($s) && strlen($s) > 2;
 });
 $main_stations = array_filter($main_stations, function($s) {
-    return !empty($s);
+    return !empty($s) && strlen($s) > 2;
 });
 
 $booked_stations = get_bookings($main_stations, clone $MASTER_DATE);
